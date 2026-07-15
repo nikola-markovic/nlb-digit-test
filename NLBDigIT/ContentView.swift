@@ -1,16 +1,11 @@
-//
-//  ContentView.swift
-//  NLBDigit
-//
-//  Created by Nikola on 7/13/26.
-//
-
 import SwiftUI
 import SwiftData
+import ComposableArchitecture
 
 struct ContentView: View {
+    let store: StoreOf<NewTransactionDomain>
     @Environment(\.modelContext) private var modelContext
-    @Query private var items: [Transaction]
+    @Query private var items: [TransactionModel]
 
     var body: some View {
         NavigationSplitView {
@@ -24,30 +19,16 @@ struct ContentView: View {
                 }
                 .onDelete(perform: deleteItems)
             }
-#if os(macOS)
-            .navigationSplitViewColumnWidth(min: 180, ideal: 200)
-#endif
             .toolbar {
-#if os(iOS)
                 ToolbarItem(placement: .navigationBarTrailing) {
                     EditButton()
                 }
-#endif
                 ToolbarItem {
-                    Button(action: addItem) {
-                        Label("Add Item", systemImage: "plus")
-                    }
+                    NewTransactionView(store: store)
                 }
             }
         } detail: {
             Text("Select an item")
-        }
-    }
-
-    private func addItem() {
-        withAnimation {
-            let newItem = Transaction(ordererName: "", ordererAddress: "", ordererPlace: "", creditorName: "", creditorAddress: "", creditorPlace: "", code: .`289`, amount: 0, creditAccount: "", model: "", referenceNumber: "", purpose: "", timestamp: .now)
-            modelContext.insert(newItem)
         }
     }
 
@@ -61,6 +42,12 @@ struct ContentView: View {
 }
 
 #Preview {
-    ContentView()
-        .modelContainer(for: Transaction.self, inMemory: true)
+    ContentView(
+        store: Store(
+            initialState: NewTransactionDomain.State()
+        ) {
+            NewTransactionDomain()
+        }
+    )
+    .modelContainer(Persistence.sharedModelContainer)
 }
