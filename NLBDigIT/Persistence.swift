@@ -12,7 +12,7 @@ struct Persistence {
     
     static var sharedModelContainer: ModelContainer = {
         let schema = Schema([
-            Transaction.self,
+            TransactionModel.self,
         ])
         let modelConfiguration = ModelConfiguration(schema: schema, groupContainer: .identifier("group.com.nm-NLBDigit"))
 

@@ -2,14 +2,16 @@ import Foundation
 import SwiftData
 
 @Model
-final class User {
-    var id: Int
+final class UserModel {
+    var id: UUID
+    
     var email: String
     var name: String
     var surname: String
-    var accounts: [Account]
+    @Relationship(inverse: \AccountModel.user)
+    var accounts: [AccountModel]
     
-    init(id: Int, email: String, name: String, surname: String, accounts: [Account]) {
+    init(id: UUID, email: String, name: String, surname: String, accounts: [AccountModel]) {
         self.id = id
         self.email = email
         self.name = name

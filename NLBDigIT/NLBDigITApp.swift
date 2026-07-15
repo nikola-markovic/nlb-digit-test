@@ -7,13 +7,20 @@
 
 import SwiftUI
 import SwiftData
+import ComposableArchitecture
 
 @main
 struct NLBDigITApp: App {
 
     var body: some Scene {
         WindowGroup {
-            ContentView()
+            ContentView(
+                store: Store(
+                    initialState: NewTransactionDomain.State()
+                ) {
+                    NewTransactionDomain()
+                }
+            )
         }
         .modelContainer(Persistence.sharedModelContainer)
     }
