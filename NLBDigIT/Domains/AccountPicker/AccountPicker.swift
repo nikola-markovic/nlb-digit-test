@@ -1,10 +1,3 @@
-//
-//  AccountPicker.swift
-//  NLBDigIT
-//
-//  Created by Nikola on 7/16/26.
-//
-
 import SwiftUI
 
 struct AccountPicker: View {
@@ -12,7 +5,7 @@ struct AccountPicker: View {
     @Binding var selection: AccountModel?
     
     var body: some View {
-        Picker("Source account",
+        Picker("Account",
                selection: $selection
         ) {
             ForEach(accounts) { account in
@@ -20,8 +13,13 @@ struct AccountPicker: View {
                     .tag(account as AccountModel?)
             }
         }
-        Text(
-            String(format: "Balance: %.2f %@", (selection?.balance ?? 0.0), selection?.currency ?? "")
+        Text(balanceText())
+    }
+    
+    private func balanceText() -> String {
+        return NumberFormatter.localizedString(
+            from: NSNumber(value: selection?.balance ?? 0.0),
+            number: .currency
         )
     }
 }

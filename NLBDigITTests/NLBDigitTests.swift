@@ -1,10 +1,3 @@
-//
-//  NLBDigitTests.swift
-//  NLBDigitTests
-//
-//  Created by Nikola on 7/13/26.
-//
-
 import Testing
 
 struct NLBDigitTests {

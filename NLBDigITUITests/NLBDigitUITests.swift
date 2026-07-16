@@ -1,10 +1,3 @@
-//
-//  NLBDigitUITests.swift
-//  NLBDigitUITests
-//
-//  Created by Nikola on 7/13/26.
-//
-
 import XCTest
 
 final class NLBDigitUITests: XCTestCase {

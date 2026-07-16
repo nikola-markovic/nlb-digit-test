@@ -1,10 +1,3 @@
-//
-//  Persistence.swift
-//  NLBDigit
-//
-//  Created by Nikola on 7/13/26.
-//
-
 import Foundation
 import SwiftData
 
@@ -32,7 +25,8 @@ struct Persistence {
     }()
     
     static let initialData = [
-        AccountModel(id: "142-123456-78", balance: 1000, currency: "EUR", transfers: []),
-        AccountModel(id: "142-Credit-70", balance: 2000, currency: "EUR", transfers: []),
+        AccountModel(id: "142-123456-78", balance: 1000, transfers: []),
+        AccountModel(id: "142-Credit-70", balance: 2000, transfers: []),
+        AccountModel(id: "142-Saving-77", balance: 2000, transfers: []),
     ]
 }

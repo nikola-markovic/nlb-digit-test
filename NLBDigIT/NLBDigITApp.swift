@@ -1,10 +1,3 @@
-//
-//  NLBDigitApp.swift
-//  NLBDigit
-//
-//  Created by Nikola on 7/13/26.
-//
-
 import SwiftUI
 import SwiftData
 import ComposableArchitecture
@@ -16,7 +9,7 @@ struct NLBDigITApp: App {
     var body: some Scene {
         WindowGroup {
             RouterView { router in
-                ContentView()
+                HomeView()
             }
             .tint(Color.indigo)
         }
