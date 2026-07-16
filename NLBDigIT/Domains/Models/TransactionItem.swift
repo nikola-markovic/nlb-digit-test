@@ -6,6 +6,7 @@ struct TransactionItem: Equatable {
     var ordererName: String
     var ordererAddress: String
     var ordererPlace: String
+    var ordererAccount: String
     
     var creditorName: String
     var creditorAddress: String
@@ -27,10 +28,11 @@ struct TransactionItem: Equatable {
             ordererName: "",
             ordererAddress: "",
             ordererPlace: "",
+            ordererAccount: "",
             creditorName: "",
             creditorAddress: "",
             creditorPlace: "",
-            code: .`289`,
+            code: .code289,
             amount: 0,
             creditAccount: "",
             model: "",

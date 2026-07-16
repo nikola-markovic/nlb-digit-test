@@ -3,7 +3,7 @@ import SwiftData
 
 @Model
 final class TransactionModel {
-    var id: UUID
+    @Attribute(.unique) var id: UUID
     
     var ordererName: String
     var ordererAddress: String
@@ -51,7 +51,7 @@ final class TransactionModel {
             creditorName: "",
             creditorAddress: "",
             creditorPlace: "",
-            code: .`289`,
+            code: .code289,
             amount: 0,
             model: "",
             referenceNumber: "",
