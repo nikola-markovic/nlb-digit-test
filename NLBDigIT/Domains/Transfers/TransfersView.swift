@@ -3,22 +3,36 @@ import SwiftData
 import ComposableArchitecture
 import SwiftfulRouting
 
-struct ContentView: View {
-    @Environment(\.router) var router
+struct TransfersView: View {
+    @Environment(\.router) private var router
     @Environment(\.modelContext) private var modelContext
-    @Query private var items: [TransferModel]
     
+    var accountId: String
+    
+    @Query private var items: [TransferModel]
     @State private var newTransferStore = Store(initialState: NewTransferDomain.State()) {
         NewTransferDomain()
+    }
+    
+    init(accountId: String) {
+        self.accountId = accountId
+        _items = Query(
+            filter: #Predicate<TransferModel> {
+                $0.sourceAccount?.id == accountId
+            },
+            sort: \TransferModel.timestamp,
+            order: .forward,
+            animation: .easeIn
+        )
     }
 
     var body: some View {
         List {
             ForEach(items) { item in
                 NavigationLink {
-                    Text("Item at \(item.timestamp, format: Date.FormatStyle(date: .numeric, time: .standard))")
+                    TransferCellView(transfer: item)
                 } label: {
-                    Text(item.timestamp, format: Date.FormatStyle(date: .numeric, time: .standard))
+                    TransferCellView(transfer: item)
                 }
             }
             .onDelete(perform: deleteItems)
@@ -54,6 +68,6 @@ struct ContentView: View {
 }
 
 #Preview {
-    ContentView()
-    .modelContainer(Persistence.sharedModelContainer)
+    TransfersView(accountId: Persistence.initialData.first!.id)
+        .modelContainer(Persistence.sharedModelContainer)
 }

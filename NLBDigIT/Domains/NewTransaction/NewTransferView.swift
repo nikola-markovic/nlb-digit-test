@@ -36,7 +36,7 @@ struct NewTransferView: View {
                     accounts: storedAccounts,
                     selection: $store
                         .selectedDestinationAccount
-                        .sending(\.didUpdateSourceAccount)
+                        .sending(\.didUpdateDestinationAccount)
                 )
             }
             
