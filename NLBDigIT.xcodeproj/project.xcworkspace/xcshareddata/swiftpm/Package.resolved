@@ -1,5 +1,5 @@
 {
-  "originHash" : "2c992a5906ab06af6026b1b691aa296273dab3ce142e4b0535604e0f9929f60a",
+  "originHash" : "6edc3faa3dd65268c87a986a0d80ceb0e23e2719906caba9f6cb1d342dee253f",
   "pins" : [
     {
       "identity" : "combine-schedulers",
@@ -116,6 +116,24 @@
       "state" : {
         "revision" : "79e4b74a295b6eb74a8b585e3a39d29e70c1dbd1",
         "version" : "603.0.2"
+      }
+    },
+    {
+      "identity" : "swiftfulrecursiveui",
+      "kind" : "remoteSourceControl",
+      "location" : "https://github.com/SwiftfulThinking/SwiftfulRecursiveUI.git",
+      "state" : {
+        "revision" : "3d2d5ac6efe70874fb5ffb2f8e1d5ccd457f4366",
+        "version" : "1.0.2"
+      }
+    },
+    {
+      "identity" : "swiftfulrouting",
+      "kind" : "remoteSourceControl",
+      "location" : "git@github.com:SwiftfulThinking/SwiftfulRouting.git",
+      "state" : {
+        "revision" : "c231025112fdc14a3508344fba2dcbcc19ebb401",
+        "version" : "6.2.1"
       }
     },
     {

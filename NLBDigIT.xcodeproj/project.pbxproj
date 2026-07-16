@@ -7,6 +7,7 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		F660486F3009012B00C656BC /* SwiftfulRouting in Frameworks */ = {isa = PBXBuildFile; productRef = F660486E3009012B00C656BC /* SwiftfulRouting */; };
 		F6F1286E3007E20C009F52B9 /* ComposableArchitecture in Frameworks */ = {isa = PBXBuildFile; productRef = F6F1286D3007E20C009F52B9 /* ComposableArchitecture */; };
 /* End PBXBuildFile section */
 
@@ -57,6 +58,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				F6F1286E3007E20C009F52B9 /* ComposableArchitecture in Frameworks */,
+				F660486F3009012B00C656BC /* SwiftfulRouting in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -77,12 +79,20 @@
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
+		F660486D3009012B00C656BC /* Frameworks */ = {
+			isa = PBXGroup;
+			children = (
+			);
+			name = Frameworks;
+			sourceTree = "<group>";
+		};
 		F6A024053004FC850097E404 = {
 			isa = PBXGroup;
 			children = (
 				F6A024103004FC850097E404 /* NLBDigIT */,
 				F6A024203004FC870097E404 /* NLBDigITTests */,
 				F6A0242A3004FC870097E404 /* NLBDigITUITests */,
+				F660486D3009012B00C656BC /* Frameworks */,
 				F6A0240F3004FC850097E404 /* Products */,
 			);
 			sourceTree = "<group>";
@@ -118,6 +128,7 @@
 			name = NLBDigIT;
 			packageProductDependencies = (
 				F6F1286D3007E20C009F52B9 /* ComposableArchitecture */,
+				F660486E3009012B00C656BC /* SwiftfulRouting */,
 			);
 			productName = NLBDigit;
 			productReference = F6A0240E3004FC850097E404 /* NLBDigIT.app */;
@@ -203,6 +214,7 @@
 			minimizedProjectReferenceProxies = 1;
 			packageReferences = (
 				F6F1286C3007E20C009F52B9 /* XCRemoteSwiftPackageReference "swift-composable-architecture" */,
+				F6ADBBE83008FD44005DEA80 /* XCRemoteSwiftPackageReference "SwiftfulRouting" */,
 			);
 			preferredProjectObjectVersion = 77;
 			productRefGroup = F6A0240F3004FC850097E404 /* Products */;
@@ -628,6 +640,14 @@
 /* End XCConfigurationList section */
 
 /* Begin XCRemoteSwiftPackageReference section */
+		F6ADBBE83008FD44005DEA80 /* XCRemoteSwiftPackageReference "SwiftfulRouting" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "git@github.com:SwiftfulThinking/SwiftfulRouting.git";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = 6.2.1;
+			};
+		};
 		F6F1286C3007E20C009F52B9 /* XCRemoteSwiftPackageReference "swift-composable-architecture" */ = {
 			isa = XCRemoteSwiftPackageReference;
 			repositoryURL = "git@github.com:pointfreeco/swift-composable-architecture.git";
@@ -635,10 +655,17 @@
 				kind = upToNextMajorVersion;
 				minimumVersion = 1.26.0;
 			};
+			traits = (
+			);
 		};
 /* End XCRemoteSwiftPackageReference section */
 
 /* Begin XCSwiftPackageProductDependency section */
+		F660486E3009012B00C656BC /* SwiftfulRouting */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = F6ADBBE83008FD44005DEA80 /* XCRemoteSwiftPackageReference "SwiftfulRouting" */;
+			productName = SwiftfulRouting;
+		};
 		F6F1286D3007E20C009F52B9 /* ComposableArchitecture */ = {
 			isa = XCSwiftPackageProductDependency;
 			package = F6F1286C3007E20C009F52B9 /* XCRemoteSwiftPackageReference "swift-composable-architecture" */;

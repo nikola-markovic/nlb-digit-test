@@ -8,19 +8,17 @@
 import SwiftUI
 import SwiftData
 import ComposableArchitecture
+import SwiftfulRouting
 
 @main
 struct NLBDigITApp: App {
 
     var body: some Scene {
         WindowGroup {
-            ContentView(
-                store: Store(
-                    initialState: NewTransactionDomain.State()
-                ) {
-                    NewTransactionDomain()
-                }
-            )
+            RouterView { router in
+                ContentView()
+            }
+            .tint(Color.indigo)
         }
         .modelContainer(Persistence.sharedModelContainer)
     }

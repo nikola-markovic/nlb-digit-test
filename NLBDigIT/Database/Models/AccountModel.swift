@@ -3,7 +3,7 @@ import SwiftData
 
 @Model
 final class AccountModel {
-    var id: UUID
+    @Attribute(.unique) var id: String
     
     var balance: Double
     var currency: String
@@ -13,7 +13,7 @@ final class AccountModel {
     
     var user: UserModel?
     
-    init(id: UUID, balance: Double, currency: String, transactions: [TransactionModel], cards: [CardModel], user: UserModel?) {
+    init(id: String, balance: Double, currency: String, transactions: [TransactionModel], cards: [CardModel], user: UserModel?) {
         self.id = id
         self.balance = balance
         self.currency = currency
