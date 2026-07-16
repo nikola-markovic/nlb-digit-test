@@ -4,86 +4,78 @@ import LocalAuthentication
 import SwiftData
 import SwiftfulRouting
 
-struct NewTransactionView: View {
-    @Bindable var store: StoreOf<NewTransactionDomain>
+struct NewTransferView: View {
+    @Bindable var store: StoreOf<NewTransferDomain>
     @Environment(\.modelContext) private var modelContext
     @Environment(\.router) private var router
     
     @Query private var storedAccounts: [AccountModel]
-    @State private var amount: String = ""
     
     var body: some View {
         Form {
-            
-            // MARK: Account
-            
             Section("From") {
-                Picker("Source account", selection: $store.selectedSourceAccount.sending(\.didUpdateSourceAccount)) {
-                    ForEach(storedAccounts) { account in
-                        Text(account.id)
-                            .tag(account as AccountModel?)
-                    }
-                }
-                Text(String(format: "Balance: %.2f", store.selectedSourceAccount?.balance ?? 0.0))
+                AccountPicker(
+                    accounts: storedAccounts,
+                    selection: $store
+                        .selectedSourceAccount
+                        .sending(\.didUpdateSourceAccount)
+                )
             }
             
             Section("Transfer") {
-                TextField("Amount", text: $amount)
-                    .keyboardType(.decimalPad)
+                TextField(
+                    "Amount",
+                    text: $store.amount.sending(\.didUpdateAmount)
+                )
+                .keyboardType(.decimalPad)
+                .font(.largeTitle.weight(.medium))
             }
-            // MARK: Payment
             
             Section("To") {
-                
-                Picker("Destination account", selection: $store.selectedDestinationAccount.sending(\.didUpdateDestinationAccount)) {
-                    ForEach(storedAccounts) { account in
-                        Text(account.id)
-                            .tag(account as AccountModel?)
-                    }
-                }
-                Text(String(format: "Balance: %.2f", store.selectedDestinationAccount?.balance ?? 0.0))
+                AccountPicker(
+                    accounts: storedAccounts,
+                    selection: $store
+                        .selectedDestinationAccount
+                        .sending(\.didUpdateSourceAccount)
+                )
             }
             
-            Section {
+            Section("Proceed") {
                 Button {
                     store.send(.didTapCreate)
                 } label: {
                     Text("Transfer funds")
                         .frame(maxWidth: .infinity)
+                        .frame(height: 30)
                 }
                 .buttonStyle(.borderedProminent)
             }
         }
-        .task {
+        .task { // Load initial accounts
             store.send(.didUpdateSourceAccount(storedAccounts.first))
             store.send(.didUpdateDestinationAccount(storedAccounts.last))
         }
-        .onChange(of: amount) { oldValue, newValue in
-            let doubleValue = Double(amount) ?? 0.0
-            store.send(.didUpdateAmount(doubleValue))
-        }
-        .onChange(of: store.transferComplete, { oldValue, newValue in
-            router.showAlert(AnyAlert(title: "Transaction complete!", buttons: {
-                Button {
-                    router.dismissAlert()
-                    router.dismissScreen()
-                } label: {
-                    Text("OK")
-                }
-            }))
-        })
+        // Show error when received
         .onChange(of: store.error) { oldValue, newValue in
             showError(store.error)
+            
         }
+        // Fields are validated, ask user for confirmation
         .onChange(of: store.showConfirmation, { oldValue, newValue in
             proceed()
+            
         })
-        .navigationTitle("New Transaction")
+        // User confirmed transfer
+        .onChange(of: store.transferComplete, { oldValue, newValue in
+            showSuccess()
+            
+        })
+        .navigationTitle("New Transfer")
     }
     
     private func showError(_ error: Error?) {
         guard let error else { return }
-        router.showAlert(AnyAlert(title: "Transaction error", subtitle: error.localizedDescription, buttons: {
+        router.showAlert(AnyAlert(title: "Transfer error", subtitle: error.localizedDescription, buttons: {
             Button {
                 store.send(.didDismissError)
             } label: {
@@ -120,28 +112,38 @@ struct NewTransactionView: View {
         }
         context.evaluatePolicy(
             .deviceOwnerAuthenticationWithBiometrics,
-            localizedReason: "Confirm banking transaction"
+            localizedReason: "Confirm banking transfer"
         ) { success, authenticationError in
-            
             DispatchQueue.main.async {
                 if let error = authenticationError {
                     store.send(.didReceiveError(error))
                 } else {
-                    submitTransaction()
+                    submitTransfer()
                 }
             }
         }
     }
     
-    private func submitTransaction() {
+    private func submitTransfer() {
         store.send(.didConfirm(true))
+    }
+    
+    private func showSuccess() {
+        router.showAlert(AnyAlert(title: "Transfer complete!", buttons: {
+            Button {
+                router.dismissAlert()
+                router.dismissScreen()
+            } label: {
+                Text("OK")
+            }
+        }))
     }
 }
 
 #Preview {
-    NewTransactionView(
-        store: Store(initialState: NewTransactionDomain.State()) {
-            NewTransactionDomain()
+    NewTransferView(
+        store: Store(initialState: NewTransferDomain.State()) {
+            NewTransferDomain()
         }
     )
 }

@@ -2,15 +2,15 @@ import Foundation
 import ComposableArchitecture
 
 @Reducer
-struct NewTransactionDomain {
+struct NewTransferDomain {
     
     @ObservableState
     struct State: Equatable {
-        var transactionItem = TransactionItem.initialTransaction()
-        var error: NSError?
-        var isShowingError = false
         var selectedSourceAccount: AccountModel?
+        var amount = ""
         var selectedDestinationAccount: AccountModel?
+
+        var error: NSError?
         var showConfirmation = false
         
         var transferComplete = false
@@ -19,7 +19,7 @@ struct NewTransactionDomain {
     enum Action: Sendable {
         // MARK: Data
         case didUpdateSourceAccount(AccountModel?)
-        case didUpdateAmount(Double)
+        case didUpdateAmount(String)
         case didUpdateDestinationAccount(AccountModel?)
         
         // MARK: UI
@@ -28,7 +28,7 @@ struct NewTransactionDomain {
         case didDismissError
         
         // MARK: Automated
-        case newTransactionResponse(TransactionModel)
+        case newTransferResponse(TransferModel)
         case didReceiveError(Error)
     }
     
@@ -39,40 +39,40 @@ struct NewTransactionDomain {
             switch action {
                 // MARK: Data
             case .didUpdateSourceAccount(let newValue):
-                state.transactionItem.ordererAccount = newValue?.id ?? ""
                 state.selectedSourceAccount = newValue
                 return .none
                 
             case .didUpdateAmount(let newValue):
-                state.transactionItem.amount = newValue
+                state.amount = newValue
                 return .none
                 
             case .didUpdateDestinationAccount(let newValue):
-                state.transactionItem.creditAccount = newValue?.id ?? ""
                 state.selectedDestinationAccount = newValue
                 return .none
                 
                 // MARK: UI
             case .didTapCreate:
+                let amount = Double(state.amount) ?? 0.0
+                
                 guard let account = state.selectedSourceAccount else {
-                    return .send(.didReceiveError(NSError(domain: "New Transaction", code: 1, userInfo: [NSLocalizedDescriptionKey: "Please, select source account first"])))
+                    return .send(.didReceiveError(NSError(domain: "New Transfer", code: 1, userInfo: [NSLocalizedDescriptionKey: "Please, select source account first"])))
                 }
                 
-                guard state.transactionItem.amount > 0 else {
-                    return .send(.didReceiveError(NSError(domain: "New Transaction", code: 1, userInfo: [NSLocalizedDescriptionKey: "Amount must be higher than 0"])))
+                guard amount > 0 else {
+                    return .send(.didReceiveError(NSError(domain: "New Transfer", code: 1, userInfo: [NSLocalizedDescriptionKey: "Amount must be higher than 0"])))
                 }
                 
-                guard state.transactionItem.amount <= account.balance else {
-                    return .send(.didReceiveError(NSError(domain: "New Transaction", code: 1, userInfo: [                    NSLocalizedDescriptionKey: "Insuficient funds. Your current balance is: \(account.balance)"])))
+                guard amount <= account.balance else {
+                    return .send(.didReceiveError(NSError(domain: "New Transfer", code: 1, userInfo: [                    NSLocalizedDescriptionKey: "Insuficient funds. Your current balance is: \(account.balance)"])))
                 }
                 
-                guard state.transactionItem.creditAccount != state.transactionItem.ordererAccount
+                guard state.selectedDestinationAccount != state.selectedSourceAccount
                 else {
                     return .send(.didReceiveError(NSError(
-                        domain: "New Transaction",
+                        domain: "New Transfer",
                         code: 0,
                         userInfo: [
-                            NSLocalizedDescriptionKey: "Credit account (\(state.transactionItem.creditAccount)) cannot be the same as the orderer account (\(state.transactionItem.ordererAccount))."
+                            NSLocalizedDescriptionKey: "Credit account (\(state.selectedDestinationAccount?.id ?? "")) cannot be the same as the orderer account (\(state.selectedSourceAccount?.id ?? ""))."
                         ]
                     )))
                 }
@@ -84,11 +84,15 @@ struct NewTransactionDomain {
             case .didConfirm(let possitive):
                 if !possitive { return .none }
                 
-                let transactionItem = state.transactionItem
+                let newTransferItem = NewTransferItem(
+                    sourceAccountId: state.selectedSourceAccount?.id ?? "",
+                    amount: Double(state.amount) ?? 0.0,
+                    destinationAccountId: state.selectedDestinationAccount?.id ?? ""
+                )
                 
                 return .run(operation: { send in
-                    let model = try await databaseClient.createTransaction(transactionItem)
-                    await send(.newTransactionResponse(model))
+                    let model = try await databaseClient.createTransfer(newTransferItem)
+                    await send(.newTransferResponse(model))
                     print("saved \(model)")
                     
                 }, catch: { error, send in
@@ -105,7 +109,7 @@ struct NewTransactionDomain {
                 state.error = error.toNSError()
                 return .none
             
-            case .newTransactionResponse(let _):
+            case .newTransferResponse(_):
                 state.transferComplete.toggle()
                 return .none
             }
@@ -115,6 +119,6 @@ struct NewTransactionDomain {
 
 private extension Error {
     func toNSError() -> NSError {
-        NSError(domain: "New Transaction", code: 0, userInfo: [NSLocalizedDescriptionKey: self.localizedDescription])
+        NSError(domain: "New Transfer", code: 0, userInfo: [NSLocalizedDescriptionKey: self.localizedDescription])
     }
 }

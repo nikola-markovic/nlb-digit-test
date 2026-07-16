@@ -12,7 +12,7 @@ struct Persistence {
     
     static let sharedModelContainer: ModelContainer = {
         let schema = Schema([
-            TransactionModel.self,
+            TransferModel.self,
             AccountModel.self,
         ])
         let modelConfiguration = ModelConfiguration(schema: schema, groupContainer: .identifier("group.com.nm-NLBDigit"))
@@ -32,7 +32,7 @@ struct Persistence {
     }()
     
     static let initialData = [
-        AccountModel(id: "142-12-34", balance: 1000, currency: "EUR", transactions: [], cards: [], user: nil),
-        AccountModel(id: "142-Credit-70", balance: 2000, currency: "EUR", transactions: [], cards: [], user: nil),
+        AccountModel(id: "142-123456-78", balance: 1000, currency: "EUR", transfers: []),
+        AccountModel(id: "142-Credit-70", balance: 2000, currency: "EUR", transfers: []),
     ]
 }

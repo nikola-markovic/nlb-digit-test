@@ -4,14 +4,14 @@ import ComposableArchitecture
 
 @DependencyClient
 struct DatabaseClient {
-    var createTransaction: @Sendable (TransactionItem) async throws -> TransactionModel
+    var createTransfer: @Sendable (NewTransferItem) async throws -> TransferModel
     var getAccountWith: @Sendable (_ id: String) async throws -> AccountModel?
 }
 
 extension DatabaseClient: DependencyKey {
     static let liveValue = Self(
-        createTransaction: { transactionItem in
-            return try await createTransactionFrom(transactionItem: transactionItem)
+        createTransfer: { transferItem in
+            return try await createTransferFrom(transferItem: transferItem)
         },
         
         getAccountWith: { id in
@@ -19,42 +19,51 @@ extension DatabaseClient: DependencyKey {
         }
     )
     
-    static func createTransactionFrom(transactionItem: TransactionItem) async throws -> TransactionModel {
+    static func createTransferFrom(transferItem: NewTransferItem) async throws -> TransferModel {
         let context = Persistence.sharedModelContainer.mainContext
         
-        guard let ordererAccount = try await getAccountWith(id: transactionItem.ordererAccount)
+        guard let sourceAccount = try await getAccountWith(id: transferItem.sourceAccountId)
         else {
             throw NSError(
-                domain: "New Transaction", code: 0,
+                domain: "New Transfer", code: 0,
                 userInfo: [
-                    NSLocalizedDescriptionKey: "\(transactionItem.ordererAccount) Account not found"
+                    NSLocalizedDescriptionKey: "\(transferItem.sourceAccountId) Account not found"
                 ]
             )
         }
         
-        guard transactionItem.amount <= ordererAccount.balance else {
+        guard transferItem.amount <= sourceAccount.balance else {
             throw NSError(
-                domain: "New Transaction", code: 0,
+                domain: "New Transfer", code: 0,
                 userInfo: [
-                    NSLocalizedDescriptionKey: "Insuficient funds. Your current balance is: \(ordererAccount.balance)"
+                    NSLocalizedDescriptionKey: "Insuficient funds. Your current balance is: \(sourceAccount.balance)"
                 ]
             )
         }
         
-        guard let creditorAccount = try await getAccountWith(id: transactionItem.creditAccount)
+        guard let destinationAccount = try await getAccountWith(id: transferItem.destinationAccountId)
         else {
             throw NSError(
-                domain: "New Transaction", code: 0,
+                domain: "New Transfer", code: 0,
                 userInfo: [
-                    NSLocalizedDescriptionKey: "\(transactionItem.creditAccount) Account not found"
+                    NSLocalizedDescriptionKey: "\(transferItem.destinationAccountId) Account not found"
                 ]
             )
         }
         
-        ordererAccount.balance -= transactionItem.amount
-        creditorAccount.balance += transactionItem.amount
+        let model = TransferModel(
+            id: UUID(),
+            sourceAccount: sourceAccount,
+            amount: transferItem.amount,
+            destinationAccount: destinationAccount,
+            timestamp: .now,
+            previousSourceBalance: sourceAccount.balance,
+            previousDestinationBalance: destinationAccount.balance
+        )
+
+        sourceAccount.balance -= transferItem.amount
+        destinationAccount.balance += transferItem.amount
         
-        let model = TransactionModel.from(transactionItem)
         context.insert(model)
         
         try context.save()
@@ -78,29 +87,5 @@ extension DependencyValues {
     var databaseClient: DatabaseClient {
         get { self[DatabaseClient.self] }
         set { self[DatabaseClient.self] = newValue }
-    }
-}
-
-extension TransactionModel {
-    static func from(_ item: TransactionItem) -> TransactionModel {
-        TransactionModel(
-            id: UUID(),
-            ordererName: item.ordererName,
-            ordererAddress: item.ordererAddress,
-            ordererPlace: item.ordererPlace,
-            
-            creditorName: item.creditorName,
-            creditorAddress: item.creditorAddress,
-            creditorPlace: item.creditorPlace,
-            code: item.code,
-            amount: item.amount,
-            model: item.model,
-            referenceNumber: item.referenceNumber,
-            purpose: item.purpose,
-            timestamp: .now,
-            cardId: item.cardId,
-            account: nil
-        )
-#warning("TODO: Don't forget the account")
     }
 }

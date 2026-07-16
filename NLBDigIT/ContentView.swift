@@ -6,10 +6,10 @@ import SwiftfulRouting
 struct ContentView: View {
     @Environment(\.router) var router
     @Environment(\.modelContext) private var modelContext
-    @Query private var items: [TransactionModel]
+    @Query private var items: [TransferModel]
     
-    @State private var newTransactionStore = Store(initialState: NewTransactionDomain.State()) {
-        NewTransactionDomain()
+    @State private var newTransferStore = Store(initialState: NewTransferDomain.State()) {
+        NewTransferDomain()
     }
 
     var body: some View {
@@ -23,15 +23,18 @@ struct ContentView: View {
             }
             .onDelete(perform: deleteItems)
         }
-        .navigationTitle("Transactions")
+        .navigationTitle("Transfers")
         .toolbar {
             ToolbarItem(placement: .navigationBarTrailing) {
                 EditButton()
             }
             ToolbarItem {
                 Button {
+                    newTransferStore = Store(initialState: NewTransferDomain.State()) {
+                        NewTransferDomain()
+                    }
                     router.showScreen(.push) { router in
-                        NewTransactionView(store: newTransactionStore)
+                        NewTransferView(store: newTransferStore)
                     }
                 } label: {
                     Label("Add Item", systemImage: "plus")

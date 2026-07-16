@@ -7,18 +7,14 @@ final class AccountModel {
     
     var balance: Double
     var currency: String
-    @Relationship(inverse: \TransactionModel.account)
-    var transactions: [TransactionModel]
-    var cards: [CardModel]
+    @Relationship(inverse: \TransferModel.sourceAccount)
+    @Relationship(inverse: \TransferModel.destinationAccount)
+    var transfers: [TransferModel]
     
-    var user: UserModel?
-    
-    init(id: String, balance: Double, currency: String, transactions: [TransactionModel], cards: [CardModel], user: UserModel?) {
+    init(id: String, balance: Double, currency: String, transfers: [TransferModel]) {
         self.id = id
         self.balance = balance
         self.currency = currency
-        self.transactions = transactions
-        self.cards = cards
-        self.user = user
+        self.transfers = transfers
     }
 }
