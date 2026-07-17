@@ -10,15 +10,13 @@ struct TransfersView: View {
     var accountId: String
     
     @Query private var items: [TransferModel]
-    @State private var newTransferStore = Store(initialState: NewTransferDomain.State()) {
-        NewTransferDomain()
-    }
     
     init(accountId: String) {
         self.accountId = accountId
         _items = Query(
             filter: #Predicate<TransferModel> {
                 $0.sourceAccount?.id == accountId
+                || $0.destinationAccount?.id == accountId
             },
             sort: \TransferModel.timestamp,
             order: .forward,
@@ -27,15 +25,27 @@ struct TransfersView: View {
     }
 
     var body: some View {
-        List {
-            ForEach(items) { item in
-                NavigationLink {
-                    TransferCellView(transfer: item)
-                } label: {
-                    TransferCellView(transfer: item)
+        Group {
+            if items.isEmpty {
+                VStack {
+                    Spacer()
+                    Text("There are no Transfers for this account.\nTry another account or make a new transfer.")
+                        .multilineTextAlignment(.center)
+                        .padding()
+                    Spacer()
+                }
+            } else {
+                List {
+                    ForEach(items) { item in
+                        NavigationLink {
+                            TransferDetailsView(transfer: item, selectedAccountId: accountId)
+                        } label: {
+                            TransferCellView(transfer: item, selectedAccountId: accountId)
+                        }
+                    }
+                    .onDelete(perform: deleteItems)
                 }
             }
-            .onDelete(perform: deleteItems)
         }
         .navigationTitle("Transfers")
         .toolbar {
@@ -44,11 +54,11 @@ struct TransfersView: View {
             }
             ToolbarItem {
                 Button {
-                    newTransferStore = Store(initialState: NewTransferDomain.State()) {
+                    let newTransferStore = Store(initialState: NewTransferDomain.State()) {
                         NewTransferDomain()
                     }
                     router.showScreen(.push) { router in
-                        NewTransferView(store: newTransferStore)
+                        NewTransferView(store: newTransferStore, preloadedAccountId: accountId)
                     }
                 } label: {
                     Label("Add Item", systemImage: "plus")
