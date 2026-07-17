@@ -2,10 +2,15 @@ import SwiftUI
 
 struct TransferCellView: View {
     let transfer: TransferModel
+    let selectedAccountId: String
+
+    var isIncoming: Bool {
+        selectedAccountId == transfer.destinationAccount?.id
+    }
     
     var body: some View {
         HStack {
-            Text(amountFormatted())
+            Text(formattedText(from: transfer.amount))
                 .foregroundStyle(amountColor())
             Spacer()
             Text(formatterDate())
@@ -14,16 +19,17 @@ struct TransferCellView: View {
         .padding(.vertical, 8)
     }
     
-    private func amountFormatted() -> String {
-        return NumberFormatter.localizedString(
-            from: NSNumber(value: transfer.amount),
+    private func formattedText(from value: Double) -> String {
+        let p = isIncoming ? "+ " : "- "
+        let formatted = NumberFormatter.localizedString(
+            from: NSNumber(value: value),
             number: .currency
         )
-        
+        return "\(p)\(formatted)"
     }
-    
+
     private func amountColor() -> Color {
-        if transfer.amount > 0 {
+        if isIncoming {
             return Color.green
         } else {
             return Color.red
@@ -44,11 +50,13 @@ struct TransferCellView: View {
     @Previewable let transfer2 = TransferModel.previewable2()
     
     TransferCellView(
-        transfer: transfer
+        transfer: transfer,
+        selectedAccountId: transfer.destinationAccount!.id
     )
         
     TransferCellView(
-        transfer: transfer2
+        transfer: transfer2,
+        selectedAccountId: ""
     )
 
 }

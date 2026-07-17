@@ -51,29 +51,20 @@ extension DatabaseClient: DependencyKey {
             )
         }
         
-        let destinationModel = TransferModel(
-            id: UUID(),
-            sourceAccount: destinationAccount,
-            amount: transferItem.amount,
-            destinationAccount: sourceAccount,
-            timestamp: .now,
-            previousSourceBalance: destinationAccount.balance,
-        )
-        
         let sourceModel = TransferModel(
             id: UUID(),
             sourceAccount: sourceAccount,
-            amount: -transferItem.amount,
+            amount: transferItem.amount,
             destinationAccount: destinationAccount,
             timestamp: .now,
             previousSourceBalance: sourceAccount.balance,
+            previousDestinationBalance: destinationAccount.balance,
         )
 
         sourceAccount.balance -= transferItem.amount
         destinationAccount.balance += transferItem.amount
         
         context.insert(sourceModel)
-        context.insert(destinationModel)
         
         try context.save()
         return sourceModel

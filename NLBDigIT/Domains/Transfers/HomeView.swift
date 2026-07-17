@@ -15,7 +15,9 @@ struct HomeView: View {
             TransfersView(accountId: account?.id ?? "")
         }
         .task {
-            account = accounts.first
+            if account == nil {
+                account = accounts.first
+            }
         }
     }
 }

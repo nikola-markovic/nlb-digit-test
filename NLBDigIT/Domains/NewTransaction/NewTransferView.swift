@@ -11,6 +11,8 @@ struct NewTransferView: View {
     
     @Query private var storedAccounts: [AccountModel]
     
+    var preloadedAccountId: String?
+    
     var body: some View {
         Form {
             Section("From") {
@@ -52,8 +54,8 @@ struct NewTransferView: View {
             }
         }
         .task { // Load initial accounts
-            store.send(.didUpdateSourceAccount(storedAccounts.first))
-            store.send(.didUpdateDestinationAccount(storedAccounts.last))
+            loadInitialAccounts()
+            
         }
         // Show error when received
         .onChange(of: store.error) { oldValue, newValue in
@@ -73,33 +75,60 @@ struct NewTransferView: View {
         .navigationTitle("New Transfer")
     }
     
+    private func loadInitialAccounts() {
+        if store.selectedSourceAccount == nil {
+            let sourceAccount = storedAccounts.first(where: { $0.id == preloadedAccountId }) ?? storedAccounts.first
+            store.send(.didUpdateSourceAccount(sourceAccount))
+        }
+        if store.selectedDestinationAccount == nil {
+            let destinationAccount = storedAccounts.first(where: { $0.id != preloadedAccountId }) ?? storedAccounts.last
+
+            store.send(.didUpdateDestinationAccount(destinationAccount))
+        }
+    }
+    
     private func showError(_ error: Error?) {
         guard let error else { return }
-        router.showAlert(AnyAlert(title: "Transfer error", subtitle: error.localizedDescription, buttons: {
+        router.showAlert(.alert, title: "Transfer error", subtitle: error.localizedDescription, buttons: {
             Button {
                 store.send(.didDismissError)
             } label: {
                 Text("OK")
             }
-        }))
+        })
     }
     
     
     // MARK: Biometrics
     
+    var areYouSureText: String {
+        """
+        \(store.amount) \(Locale.current.currencySymbol ?? "") will be transferred
+        from \(store.selectedSourceAccount?.id ?? "") 
+        to \(store.selectedDestinationAccount?.id ?? "").
+        
+        Proceed?
+        """
+    }
+    
     private func proceed() {
-        router.showAlert(AnyAlert(title: "Are you sure?", buttons: {
-            Button {
-                authenticate()
-            } label: {
-                Text("YES")
+        router.showAlert(
+            .alert,
+            title: "Are you sure?",
+            subtitle: areYouSureText,
+            buttons: {
+                Button {
+                    authenticate()
+                } label: {
+                    Text("YES")
+                }
+                Button {
+                    store.send(.didConfirm(false))
+                } label: {
+                    Text("NO")
+                }
             }
-            Button {
-                store.send(.didConfirm(false))
-            } label: {
-                Text("NO")
-            }
-        }))
+        )
     }
     
     private func authenticate() {
@@ -107,7 +136,7 @@ struct NewTransferView: View {
         var error: NSError?
         
         guard context.canEvaluatePolicy(.deviceOwnerAuthenticationWithBiometrics, error: &error) else {
-            store.send(.didReceiveError(error ?? NSError()))
+            additionalConfirmation()
             return
         }
         context.evaluatePolicy(
@@ -124,19 +153,39 @@ struct NewTransferView: View {
         }
     }
     
+    private func additionalConfirmation() {
+        router.showAlert(
+            .alert,
+            title: "FaceID not set. Please confirm again.",
+            subtitle: areYouSureText,
+            buttons: {
+                Button {
+                    submitTransfer()
+                } label: {
+                    Text("YES")
+                }
+                
+                Button {
+                    
+                } label: {
+                    Text("NO")
+                }
+            })
+    }
+    
     private func submitTransfer() {
         store.send(.didConfirm(true))
     }
     
     private func showSuccess() {
-        router.showAlert(AnyAlert(title: "Transfer complete!", buttons: {
+        router.showAlert(.alert, title: "Transfer complete!", buttons: {
             Button {
                 router.dismissAlert()
                 router.dismissScreen()
             } label: {
                 Text("OK")
             }
-        }))
+        })
     }
 }
 
