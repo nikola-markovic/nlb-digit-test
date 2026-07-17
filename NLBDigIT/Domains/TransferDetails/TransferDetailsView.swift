@@ -123,11 +123,8 @@ struct TransferDetailsView: View {
     }
     
     private func openRepeatTransfer() {
-        let newTransferStore = Store(initialState: NewTransferDomain.State(
-            selectedSourceAccount: transfer.sourceAccount,
-            amount: "\(transfer.amount)",
-            selectedDestinationAccount: transfer.destinationAccount,
-            )) {
+        let transferItem = TransferItem.from(transfer)
+        let newTransferStore = Store(initialState: NewTransferDomain.State( sourceAccountPicker: AccountPickerDomain.State(selectedAccount: transferItem.sourceAccount), destinationAccountPicker: AccountPickerDomain.State(selectedAccount: transferItem.destinationAccount))) {
             NewTransferDomain()
         }
         router.showScreen(.push) { router in

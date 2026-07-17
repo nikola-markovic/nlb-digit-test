@@ -28,8 +28,14 @@ struct Persistence {
     }()
     
     static let initialData = [
-        AccountModel(id: "142-123456-78", balance: 1000, transfers: []),
-        AccountModel(id: "142-Credit-70", balance: 2000, transfers: []),
-        AccountModel(id: "142-Saving-77", balance: 0, transfers: []),
+        AccountModel(id: "142-123456-78", balance: 1000),
+        AccountModel(id: "142-Credit-70", balance: 2000),
+        AccountModel(id: "142-Saving-77", balance: 0),
+    ]
+    
+    static let initialStructs = [
+        AccountItem(id: "142-123456-78", balance: 1000),
+        AccountItem(id: "142-Credit-70", balance: 2000),
+        AccountItem(id: "142-Saving-77", balance: 0),
     ]
 }

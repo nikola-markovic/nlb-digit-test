@@ -9,8 +9,8 @@ struct HomeView: View {
     var body: some View {
         VStack {
             Text("For account:")
-            AccountPicker(accounts: accounts, selection: $account)
-                .font(Font.system(.largeTitle, weight: .bold))
+//            AccountPicker(accounts: accounts, selection: $account)
+//                .font(Font.system(.largeTitle, weight: .bold))
             
             TransfersView(accountId: account?.id ?? "")
         }

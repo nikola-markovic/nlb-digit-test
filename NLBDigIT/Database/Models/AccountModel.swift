@@ -2,17 +2,13 @@ import Foundation
 import SwiftData
 
 @Model
-final class AccountModel {
+final class AccountModel: Hashable {
     @Attribute(.unique) var id: String
     
     var balance: Double
-    @Relationship(inverse: \TransferModel.sourceAccount)
-    @Relationship(inverse: \TransferModel.destinationAccount)
-    var transfers: [TransferModel]
     
-    init(id: String, balance: Double, transfers: [TransferModel]) {
+    init(id: String, balance: Double) {
         self.id = id
         self.balance = balance
-        self.transfers = transfers
     }
 }

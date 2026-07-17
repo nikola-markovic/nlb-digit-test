@@ -6,21 +6,25 @@ struct NewTransferDomain {
     
     @ObservableState
     struct State: Equatable {
-        var selectedSourceAccount: AccountModel?
+        var preloadedAccountId = ""
         var amount = ""
-        var selectedDestinationAccount: AccountModel?
-
         var error: NSError?
         var showConfirmation = false
-        
         var transferComplete = false
+        
+        var sourceAccountPicker = AccountPickerDomain.State()
+        var destinationAccountPicker = AccountPickerDomain.State()
     }
     
     enum Action: Sendable {
+        // MARK: Child
+        case sourceAccount(AccountPickerDomain.Action)
+        case destinationAccount(AccountPickerDomain.Action)
+        
         // MARK: Data
-        case didUpdateSourceAccount(AccountModel?)
+        case loadAccounts
         case didUpdateAmount(String)
-        case didUpdateDestinationAccount(AccountModel?)
+        case accountsResponse([AccountItem])
         
         // MARK: UI
         case didTapCreate
@@ -28,33 +32,64 @@ struct NewTransferDomain {
         case didDismissError
         
         // MARK: Automated
-        case newTransferResponse(TransferModel)
+        case newTransferResponse(TransferItem)
         case didReceiveError(Error)
     }
     
     @Dependency(\.databaseClient) var databaseClient
     
     var body: some Reducer<State, Action> {
-        Reduce { state, action in
+        Scope(state: \.sourceAccountPicker, action: \.sourceAccount) {
+                    AccountPickerDomain()
+                }
+        Scope(state: \.destinationAccountPicker, action: \.destinationAccount) {
+                    AccountPickerDomain()
+                }
+        
+        Reduce<State, Action> { state, action in
             switch action {
-                // MARK: Data
-            case .didUpdateSourceAccount(let newValue):
-                state.selectedSourceAccount = newValue
+            case .sourceAccount, .destinationAccount:
+                // Handled by AccountPickerDomain
                 return .none
                 
+            case .loadAccounts:
+                return .run { send in
+                    let accounts = try await databaseClient.fetchAccounts()
+                    await send(.accountsResponse(accounts))
+                } catch: { error, send in
+                    await send(.didReceiveError(error))
+                }
+                
+            case .accountsResponse(let accounts):
+                state.sourceAccountPicker.accounts = accounts
+                state.destinationAccountPicker.accounts = accounts
+                
+                if state.sourceAccountPicker.selectedAccount == nil {
+                        let sourceAccount = accounts.first(
+                            where: { $0.id == state.preloadedAccountId }
+                        ) ?? accounts.first
+                        
+                        state.sourceAccountPicker.selectedAccount = sourceAccount
+                    }
+                if state.destinationAccountPicker.selectedAccount == nil {
+                    let destinationAccount = accounts.first(
+                        where: { $0.id != state.preloadedAccountId }
+                    ) ?? accounts.last
+                    state.destinationAccountPicker.selectedAccount = destinationAccount
+                }
+                
+                return .none
+                
+                // MARK: Data
             case .didUpdateAmount(let newValue):
                 state.amount = newValue
-                return .none
-                
-            case .didUpdateDestinationAccount(let newValue):
-                state.selectedDestinationAccount = newValue
                 return .none
                 
                 // MARK: UI
             case .didTapCreate:
                 let amount = Double(state.amount) ?? 0.0
                 
-                guard let account = state.selectedSourceAccount else {
+                guard let account = state.sourceAccountPicker.selectedAccount else {
                     return .send(.didReceiveError(NSError(domain: "New Transfer", code: 1, userInfo: [NSLocalizedDescriptionKey: "Please, select source account first"])))
                 }
                 
@@ -66,13 +101,13 @@ struct NewTransferDomain {
                     return .send(.didReceiveError(NSError(domain: "New Transfer", code: 1, userInfo: [                    NSLocalizedDescriptionKey: "Insuficient funds. Your current balance is: \(account.balance)"])))
                 }
                 
-                guard state.selectedDestinationAccount != state.selectedSourceAccount
+                guard state.destinationAccountPicker.selectedAccount != state.sourceAccountPicker.selectedAccount
                 else {
                     return .send(.didReceiveError(NSError(
                         domain: "New Transfer",
                         code: 0,
                         userInfo: [
-                            NSLocalizedDescriptionKey: "Credit account (\(state.selectedDestinationAccount?.id ?? "")) cannot be the same as the orderer account (\(state.selectedSourceAccount?.id ?? ""))."
+                            NSLocalizedDescriptionKey: "Credit account (\(state.destinationAccountPicker.selectedAccount?.id ?? "")) cannot be the same as the orderer account (\(state.sourceAccountPicker.selectedAccount?.id ?? ""))."
                         ]
                     )))
                 }
@@ -85,9 +120,9 @@ struct NewTransferDomain {
                 if !possitive { return .none }
                 
                 let newTransferItem = NewTransferItem(
-                    sourceAccountId: state.selectedSourceAccount?.id ?? "",
+                    sourceAccountId: state.sourceAccountPicker.selectedAccount?.id ?? "",
                     amount: Double(state.amount) ?? 0.0,
-                    destinationAccountId: state.selectedDestinationAccount?.id ?? ""
+                    destinationAccountId: state.destinationAccountPicker.selectedAccount?.id ?? ""
                 )
                 
                 return .run(operation: { send in

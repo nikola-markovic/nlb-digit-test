@@ -16,13 +16,12 @@ struct NewTransferView: View {
     var body: some View {
         Form {
             Section("From") {
-                AccountPicker(
-                    accounts: storedAccounts,
-                    selection: $store
-                        .selectedSourceAccount
-                        .sending(\.didUpdateSourceAccount)
-                )
-            }
+                AccountPickerView(
+                    store: store.scope(
+                        state: \.sourceAccountPicker,
+                        action: \.sourceAccount
+                    )
+                )            }
             
             Section("Transfer") {
                 TextField(
@@ -34,11 +33,11 @@ struct NewTransferView: View {
             }
             
             Section("To") {
-                AccountPicker(
-                    accounts: storedAccounts,
-                    selection: $store
-                        .selectedDestinationAccount
-                        .sending(\.didUpdateDestinationAccount)
+                AccountPickerView(
+                    store: store.scope(
+                        state: \.destinationAccountPicker,
+                        action: \.destinationAccount
+                    )
                 )
             }
             
@@ -76,15 +75,7 @@ struct NewTransferView: View {
     }
     
     private func loadInitialAccounts() {
-        if store.selectedSourceAccount == nil {
-            let sourceAccount = storedAccounts.first(where: { $0.id == preloadedAccountId }) ?? storedAccounts.first
-            store.send(.didUpdateSourceAccount(sourceAccount))
-        }
-        if store.selectedDestinationAccount == nil {
-            let destinationAccount = storedAccounts.first(where: { $0.id != preloadedAccountId }) ?? storedAccounts.last
-
-            store.send(.didUpdateDestinationAccount(destinationAccount))
-        }
+        store.send(.loadAccounts)        
     }
     
     private func showError(_ error: Error?) {
@@ -104,8 +95,8 @@ struct NewTransferView: View {
     var areYouSureText: String {
         """
         \(store.amount) \(Locale.current.currencySymbol ?? "") will be transferred
-        from \(store.selectedSourceAccount?.id ?? "") 
-        to \(store.selectedDestinationAccount?.id ?? "").
+        from \(store.sourceAccountPicker.selectedAccount?.id ?? "") 
+        to \(store.sourceAccountPicker.selectedAccount?.id ?? "").
         
         Proceed?
         """
@@ -190,9 +181,12 @@ struct NewTransferView: View {
 }
 
 #Preview {
-    NewTransferView(
-        store: Store(initialState: NewTransferDomain.State()) {
-            NewTransferDomain()
-        }
-    )
+    let mock = Store(initialState: .mock) {
+        NewTransferDomain()
+    }
+    RouterView {_ in
+        NewTransferView(
+            store: mock
+        )
+    }
 }
