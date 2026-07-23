@@ -1,11 +1,3 @@
-//
-//  NewTransferDomain.swift
-//  NLBDigIT
-//
-//  Created by Nikola on 7/17/26.
-//
-
-
 import Foundation
 import ComposableArchitecture
 
